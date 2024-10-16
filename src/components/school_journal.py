@@ -33,11 +33,14 @@ class Student(Person):
     def add_grades(self, subject: str, grades: List[int]) -> None:
         MIN_GRADES = 2
         MAX_GRADES = 16
+
         if not isinstance(grades, list) or not all(isinstance(grade, int) for grade in grades):
             raise InvalidGradeError("Оценки должны быть списком целых чисел.")
+
         if not MIN_GRADES <= len(grades) <= MAX_GRADES:
             raise InvalidGradeError(
                 f"Количество оценок по предмету '{subject}' должно быть от {MIN_GRADES} до {MAX_GRADES}.")
+
         if not all(1 <= grade <= 5 for grade in grades):
             raise InvalidGradeError("Оценки должны быть в диапазоне от 1 до 5.")
         self.grades[subject] = Grade(subject=subject, grades=grades)
@@ -45,20 +48,25 @@ class Student(Person):
     def update_grades(self, subject: str, new_grades: List[int]) -> None:
         if subject not in self.grades:
             raise SubjectNotFoundError(f"Предмет '{subject}' не найден у студента.")
+
         if not isinstance(new_grades, list) or not all(isinstance(grade, int) for grade in new_grades):
             raise InvalidGradeError("Оценки должны быть списком целых чисел.")
+
         if not all(1 <= grade <= 5 for grade in new_grades):
             raise InvalidGradeError("Оценки должны быть в диапазоне от 1 до 5.")
+
         self.grades[subject].grades = new_grades
 
     def get_average_grade(self, subject: str) -> Optional[float]:
         if subject in self.grades and self.grades[subject].grades:
             return self.grades[subject].get_average()
+
         return None
 
     def get_overall_average(self) -> Optional[float]:
         if not self.grades:
             return None
+
         total_sum = sum(grade.get_average() for grade in self.grades.values())
         return total_sum / len(self.grades)
 

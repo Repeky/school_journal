@@ -64,8 +64,8 @@ class JournalApp:
                 student.add_grades(subject=subject, grades=grades)
             except ValueError:
                 print("Некорректный ввод оценок. Пожалуйста, введите числа, разделенные запятыми.")
-            except InvalidGradeError as e:
-                print(e)
+            except InvalidGradeError as err:
+                print(err)
 
         self.journal.add_student(student)
         print(f"Студент {name} успешно добавлен в журнал!")
@@ -87,6 +87,7 @@ class JournalApp:
             return
 
         subject = input("Введите предмет для изменения оценок: ")
+
         try:
             grades_input = input("Введите новые оценки через запятую: ")
             new_grades = list(map(int, grades_input.split(',')))
