@@ -1,4 +1,8 @@
-from components.school_journal import SchoolJournal
+from src.components.school_journal import SchoolJournal
+from src.components.exceptions import (InvalidDateError,
+                                       InvalidGradeError,
+                                       SubjectNotFoundError,
+                                       StudentNotFoundError)
 
 
 class JournalApp:
@@ -40,9 +44,14 @@ class JournalApp:
 
     def add_student_to_journal(self) -> None:
         name = input("Введите имя студента: ")
-        birthdate = input("Введите дату рождения студента (формат ДД.ММ.ГГГГ): ")
-
-        student = self.journal.create_student(name, birthdate)
+        while True:
+            birthdate = input("Введите дату рождения студента (формат ДД.ММ.ГГГГ): ")
+            try:
+                student = self.journal.create_student(name, birthdate)
+                break
+            except InvalidDateError as err:
+                print(err)
+                print("Пожалуйста, попробуйте снова.")
 
         while True:
             subject = input("Введите предмет (или 'стоп' для завершения): ")
@@ -50,9 +59,13 @@ class JournalApp:
                 break
 
             grades_input = input("Введите оценки через запятую: ")
-            grades = list(map(int, grades_input.split(',')))
-
-            student.add_grades(subject=subject, grades=grades)
+            try:
+                grades = list(map(int, grades_input.split(',')))
+                student.add_grades(subject=subject, grades=grades)
+            except ValueError:
+                print("Некорректный ввод оценок. Пожалуйста, введите числа, разделенные запятыми.")
+            except InvalidGradeError as e:
+                print(e)
 
         self.journal.add_student(student)
         print(f"Студент {name} успешно добавлен в журнал!")
@@ -66,19 +79,25 @@ class JournalApp:
         for idx, student in enumerate(self.journal.students, start=1):
             print(f"{idx}. {student.name}")
 
-        student_index = int(input("Выберите номер студента для изменения оценок: ")) - 1
-        student = self.journal.get_student_by_index(student_index)
-
-        subject = input("Введите предмет для изменения оценок: ")
-        if subject not in student.grades:
-            print(f"У студента нет оценок по предмету '{subject}'.")
+        try:
+            student_index = int(input("Выберите номер студента для изменения оценок: ")) - 1
+            student = self.journal.get_student_by_index(student_index)
+        except (ValueError, StudentNotFoundError) as err:
+            print(err)
             return
 
-        grades_input = input("Введите новые оценки через запятую: ")
-        new_grades = list(map(int, grades_input.split(',')))
-
-        student.update_grades(subject=subject, new_grades=new_grades)
-        print(f"Оценки по предмету '{subject}' обновлены для студента {student.name}.")
+        subject = input("Введите предмет для изменения оценок: ")
+        try:
+            grades_input = input("Введите новые оценки через запятую: ")
+            new_grades = list(map(int, grades_input.split(',')))
+            student.update_grades(subject=subject, new_grades=new_grades)
+            print(f"Оценки по предмету '{subject}' обновлены для студента {student.name}.")
+        except ValueError:
+            print("Некорректный ввод оценок. Пожалуйста, введите числа, разделенные запятыми.")
+        except InvalidGradeError as err:
+            print(err)
+        except SubjectNotFoundError as err:
+            print(err)
 
     def display_journal(self) -> None:
         self.journal.display_statistics()

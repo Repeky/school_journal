@@ -2,6 +2,10 @@ from src.components.person import Person
 from typing import List, Optional, Dict
 from datetime import datetime
 from src.components.date_analysis import get_zodiac_sign, days_since_birth
+from src.components.exceptions import (InvalidDateError,
+                                       InvalidGradeError,
+                                       SubjectNotFoundError,
+                                       StudentNotFoundError)
 
 
 class Grade:
@@ -18,24 +22,34 @@ class Grade:
 class Student(Person):
     """Класс для представления студента."""
 
-    def __init__(self, name: str, birthdate: str) -> None:
-        super().__init__(name, birthdate)
-        self.birthdate = datetime.strptime(birthdate, "%d.%m.%Y")
+    def __init__(self, name: str, birthdate_str: str) -> None:
+        super().__init__(name, birthdate_str)
+        try:
+            self.birthdate = datetime.strptime(birthdate_str, "%d.%m.%Y")
+        except ValueError:
+            raise InvalidDateError(f"Некорректный формат даты: {birthdate_str}. Ожидается ДД.ММ.ГГГГ.")
         self.grades: Dict[str, Grade] = {}
 
     def add_grades(self, subject: str, grades: List[int]) -> None:
         MIN_GRADES = 2
         MAX_GRADES = 16
-        if MIN_GRADES <= len(grades) <= MAX_GRADES:
-            self.grades[subject] = Grade(subject=subject, grades=grades)
-        else:
-            print(f"Количество оценок по предмету '{subject}' должно быть от {MIN_GRADES} до {MAX_GRADES}.")
+        if not isinstance(grades, list) or not all(isinstance(grade, int) for grade in grades):
+            raise InvalidGradeError("Оценки должны быть списком целых чисел.")
+        if not MIN_GRADES <= len(grades) <= MAX_GRADES:
+            raise InvalidGradeError(
+                f"Количество оценок по предмету '{subject}' должно быть от {MIN_GRADES} до {MAX_GRADES}.")
+        if not all(1 <= grade <= 5 for grade in grades):
+            raise InvalidGradeError("Оценки должны быть в диапазоне от 1 до 5.")
+        self.grades[subject] = Grade(subject=subject, grades=grades)
 
     def update_grades(self, subject: str, new_grades: List[int]) -> None:
-        if subject in self.grades:
-            self.grades[subject].grades = new_grades
-        else:
-            print(f"Предмет '{subject}' не найден у студента.")
+        if subject not in self.grades:
+            raise SubjectNotFoundError(f"Предмет '{subject}' не найден у студента.")
+        if not isinstance(new_grades, list) or not all(isinstance(grade, int) for grade in new_grades):
+            raise InvalidGradeError("Оценки должны быть списком целых чисел.")
+        if not all(1 <= grade <= 5 for grade in new_grades):
+            raise InvalidGradeError("Оценки должны быть в диапазоне от 1 до 5.")
+        self.grades[subject].grades = new_grades
 
     def get_average_grade(self, subject: str) -> Optional[float]:
         if subject in self.grades and self.grades[subject].grades:
@@ -51,12 +65,17 @@ class Student(Person):
     def get_age(self) -> int:
         today = datetime.today()
         return today.year - self.birthdate.year - (
-                    (today.month, today.day) < (self.birthdate.month, self.birthdate.day))
+                (today.month, today.day) < (self.birthdate.month, self.birthdate.day))
+
+    def get_zodiac_sign(self) -> str:
+        return get_zodiac_sign(self.birthdate)
+
+    def days_since_birth(self) -> int:
+        return days_since_birth(self.birthdate)
 
     def display_info(self) -> None:
-        """Отображение информации о студенте."""
-        zodiac_sign = get_zodiac_sign(self.birthdate)
-        days_lived = days_since_birth(self.birthdate)
+        zodiac_sign = self.get_zodiac_sign()
+        days_lived = self.days_since_birth()
 
         print(f"Студент: {self.name}")
         print(f"Дата рождения: {self.birthdate.strftime('%d.%m.%Y')}")
@@ -88,7 +107,10 @@ class SchoolJournal:
         self.students.append(student)
 
     def get_student_by_index(self, index: int) -> Student:
-        return self.students[index]
+        try:
+            return self.students[index]
+        except IndexError:
+            raise StudentNotFoundError(f"Студент с номером {index + 1} не найден.")
 
     def display_statistics(self) -> None:
         if not self.students:
