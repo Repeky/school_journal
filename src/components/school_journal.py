@@ -24,6 +24,7 @@ class Student(Person):
 
     def __init__(self, name: str, birthdate_str: str) -> None:
         super().__init__(name, birthdate_str)
+
         try:
             self.birthdate = datetime.strptime(birthdate_str, "%d.%m.%Y")
         except ValueError:
@@ -39,10 +40,12 @@ class Student(Person):
 
         if not MIN_GRADES <= len(grades) <= MAX_GRADES:
             raise InvalidGradeError(
-                f"Количество оценок по предмету '{subject}' должно быть от {MIN_GRADES} до {MAX_GRADES}.")
+                f"Количество оценок по предмету '{subject}' должно быть от {MIN_GRADES} до {MAX_GRADES}."
+            )
 
         if not all(1 <= grade <= 5 for grade in grades):
             raise InvalidGradeError("Оценки должны быть в диапазоне от 1 до 5.")
+
         self.grades[subject] = Grade(subject=subject, grades=grades)
 
     def update_grades(self, subject: str, new_grades: List[int]) -> None:
@@ -94,9 +97,10 @@ class Student(Person):
         for subject, grade in self.grades.items():
             grades_str = ', '.join(map(str, grade.grades))
             avg_grade = grade.get_average()
-            print(f"Предмет: {subject}, Оценки: {grades_str}, Средний балл: {avg_grade:.2f}")
+            print(f"Предмет: {subject}, Оценки: {grades_str}, Средний балл: {round(avg_grade, 2)}")
 
         overall_average = self.get_overall_average()
+
         if overall_average is not None:
             print(f"Средний балл по всем предметам: {round(overall_average, 2)}")
         print("-" * 40)

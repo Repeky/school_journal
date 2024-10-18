@@ -6,6 +6,7 @@ from src.components.exceptions import InvalidDateError
 class Person(ABC):
     def __init__(self, name: str, birthdate: str):
         self.name = name
+
         try:
             self.birthdate = datetime.strptime(birthdate, "%d.%m.%Y")
         except ValueError:

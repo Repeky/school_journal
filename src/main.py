@@ -36,7 +36,7 @@ class JournalApp:
             "Просмотр журнала",
             "Добавить студента",
             "Изменить оценку студента",
-            "Выход"
+            "Выход",
         ]
 
         for number, parameter in enumerate(list_parameters, start=1):
