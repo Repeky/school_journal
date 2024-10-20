@@ -10,11 +10,11 @@ class JournalApp:
 
     def __init__(self) -> None:
         self.journal = SchoolJournal()
-        self.is_working = True
+        self.__is_working = True
 
     def run(self) -> None:
-        while self.is_working:
-            self.print_menu()
+        while self.__is_working:
+            self.__print_menu()
 
             user_input = input('Выберите параметр: ')
 
@@ -27,11 +27,11 @@ class JournalApp:
                     self.update_student_grades()
                 case "4":
                     print("Выход из программы.")
-                    self.is_working = False
+                    self.__is_working = False
                 case _:
                     print("Некорректный ввод. Попробуйте снова.")
 
-    def print_menu(self) -> None:
+    def __print_menu(self) -> None:
         list_parameters = [
             "Просмотр журнала",
             "Добавить студента",
